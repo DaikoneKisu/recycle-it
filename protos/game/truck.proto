@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+import "game/garbage.proto";
+import "math/vector.proto";
+
+message Truck {
+	string ownerNickname = 1;
+	TruckType type = 2;
+	repeated game.Garbage garbageCollected = 3;
+	math.Vector locationAndOrientation = 4;
+}
+
+enum TruckType {
+	TRUCK_TYPE_UNKNOWN = 0;
+	TRUCK_TYPE_PLASTIC = 1;
+	TRUCK_TYPE_GLASS = 2;
+	TRUCK_TYPE_PAPER = 3;
+	TRUCK_TYPE_ORGANIC = 4;
+	TRUCK_TYPE_METAL = 5;	
+}

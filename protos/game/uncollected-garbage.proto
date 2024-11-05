@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+import "game/garbage.proto";
+import "math/point.proto";
+
+message UncollectedGarbage {
+	math.Point location = 1;
+	game.Garbage garbage = 2;
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package lobby;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/lobby";
+
+message Lobby {
+	string id  = 1;
+	repeated LobbyMember members = 2;
+	LobbySettings settings = 4;
+}
+
+message LobbyMember {
+	string playerNickname = 1;
+	LobbyMembership membership = 2;
+}
+
+enum LobbyMembership {
+	LOBBY_MEMBERSHIP_UNKNOWN = 0;
+	LOBBY_MEMBERSHIP_OWNER = 1;
+	LOBBY_MEMBERSHIP_GUEST = 2;
+}
+
+message LobbySettings {
+	int32 playerCapacity = 1;
+	int32 gameDurationInSeconds = 2;
+}

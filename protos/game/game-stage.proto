@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+import "game/truck.proto";
+import "game/uncollected-garbage.proto";
+
+message GameStage {
+	repeated game.Truck trucks = 1;
+	repeated game.UncollectedGarbage uncollectedGarbage = 2;	
+}

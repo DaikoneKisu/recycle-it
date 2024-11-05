@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/auth";
+
+service AuthController {
+	rpc SignUp(SignUpRequest) returns (SignUpResponse);
+	rpc SignIn(SignInRequest) returns (SignInResponse);
+}
+
+message SignUpRequest {
+	string nickname = 1;
+	string password = 2;
+}
+
+message SignUpResponse {
+	string token = 1;
+}
+
+message SignInRequest {
+	string nickname = 1;
+	string password = 2;
+}
+
+message SignInResponse {
+	string token = 1;
+}

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+import "game/game-stage.proto";
+import "math/point.proto";
+
+service GameController {
+	rpc StartGame(StartGameRequest) returns (stream StartGameResponse);
+	rpc JoinGame(JoinGameRequest) returns (stream JoinGameResponse);
+	rpc MoveMyTruckTo(MoveMyTruckToRequest) returns (MoveMyTruckToResponse);
+	rpc CollectGarbageWithMyTruck(CollectGarbageWithMyTruckRequest) returns (CollectGarbageWithMyTruckResponse);
+	rpc DepositGarbageFromMyTruck(DepositGarbageFromMyTruckRequest) returns (DepositGarbageFromMyTruckResponse);
+}
+
+// metadata: auth-token
+message StartGameRequest {}
+
+message StartGameResponse {
+	game.GameStage gameStage = 1;
+	int32 timeRemainingInSeconds = 2;
+	bool hasGameEnded = 3;
+}
+
+// metadata: auth-token
+message JoinGameRequest {}
+
+message JoinGameResponse {
+	game.GameStage gameStage = 1;
+	int32 timeRemainingInSeconds = 2;
+	bool hasGameEnded = 3;
+}
+
+// metadata: auth-token
+message MoveMyTruckToRequest {
+	math.Point newLocation = 1;
+}
+
+message MoveMyTruckToResponse {}
+
+// metadata: auth-token
+message CollectGarbageWithMyTruckRequest {}
+
+message CollectGarbageWithMyTruckResponse {}
+
+// metadata: auth-token
+message DepositGarbageFromMyTruckRequest {}
+
+message DepositGarbageFromMyTruckResponse {}
