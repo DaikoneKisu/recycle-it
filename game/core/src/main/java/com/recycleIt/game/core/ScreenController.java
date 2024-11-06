@@ -22,15 +22,15 @@ public class ScreenController {
   }
 
   private Array<AbstractScreen> screens = new Array<>();
-  private static ScreenController instace;
+  private static ScreenController instance;
   private final RecycleIt GAME;
 
   public static ScreenController getInstace(RecycleIt game) {
-    if (ScreenController.instace == null) {
-      ScreenController.instace = new ScreenController(game);
+    if (ScreenController.instance == null) {
+      ScreenController.instance = new ScreenController(game);
     }
 
-    return ScreenController.instace;
+    return ScreenController.instance;
   }
 
   public void register(Screen screen) {

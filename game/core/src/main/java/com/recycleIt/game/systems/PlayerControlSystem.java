@@ -5,17 +5,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
+
 import com.recycleIt.game.components.PlayerComponent;
-import com.recycleIt.game.components.PolygonBodyComponent;
+import com.recycleIt.game.components.B2dBodyComponent;
 import com.recycleIt.game.components.StateComponent;
-import com.recycleIt.game.components.VelocityComponent;
 import com.recycleIt.game.controllers.KeyboardController;
 
 public class PlayerControlSystem extends IteratingSystem {
   ComponentMapper<PlayerComponent> pm;
-  ComponentMapper<PolygonBodyComponent> bodm;
-  ComponentMapper<VelocityComponent> vm;
+  ComponentMapper<B2dBodyComponent> bodm;
   ComponentMapper<StateComponent> sm;
   KeyboardController controller;
 
@@ -27,61 +25,58 @@ public class PlayerControlSystem extends IteratingSystem {
     super(Family.all(PlayerComponent.class).get());
     controller = keyCon;
     pm = ComponentMapper.getFor(PlayerComponent.class);
-    bodm = ComponentMapper.getFor(PolygonBodyComponent.class);
+    bodm = ComponentMapper.getFor(B2dBodyComponent.class);
     sm = ComponentMapper.getFor(StateComponent.class);
-    vm = ComponentMapper.getFor(VelocityComponent.class);
   }
 
   @Override
   protected void processEntity(Entity entity, float deltaTime) {
-    PolygonBodyComponent pbody = bodm.get(entity);
-    VelocityComponent vel = vm.get(entity);
+    B2dBodyComponent b2body = bodm.get(entity);
     StateComponent state = sm.get(entity);
 
-    if (vel.velocity.len() > 0) {
+    if (b2body.body.getLinearVelocity().len() > 0) {
       state.set(StateComponent.STATE_MOVING);
     }
 
-    if (vel.velocity.len() == 0) {
-      state.set(StateComponent.STATE_IDDLE);
+    if (b2body.body.getLinearVelocity().len() == 0) {
+      state.set(StateComponent.STATE_IDLE);
     }
+
+    System.out.println(b2body.body.getLinearVelocity());
 
     if (controller.left) {
-      vel.velocity
-          .set(new Vector2(MathUtils.lerp(vel.velocity.x, -PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA), vel.velocity.y));
+      b2body.body.setLinearVelocity(
+          MathUtils.lerp(b2body.body.getLinearVelocity().x, -PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA),
+          b2body.body.getLinearVelocity().y);
     }
     if (controller.right) {
-      vel.velocity
-          .set(new Vector2(MathUtils.lerp(vel.velocity.x, PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA), vel.velocity.y));
+      b2body.body.setLinearVelocity(
+          MathUtils.lerp(b2body.body.getLinearVelocity().x, PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA),
+          b2body.body.getLinearVelocity().y);
     }
 
-    if (!controller.left && !controller.right && state.get() == StateComponent.STATE_MOVING) {
-      vel.velocity
-          .set(new Vector2(MathUtils.lerp(vel.velocity.x, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA), vel.velocity.y));
+    if (!controller.left && !controller.right) {
+      b2body.body.setLinearVelocity(
+          MathUtils.lerp(b2body.body.getLinearVelocity().x, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA),
+          b2body.body.getLinearVelocity().y);
     }
 
     if (controller.up) {
-      vel.velocity
-          .set(new Vector2(vel.velocity.x, MathUtils.lerp(vel.velocity.y, PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA)));
+      b2body.body.setLinearVelocity(
+          b2body.body.getLinearVelocity().x,
+          MathUtils.lerp(b2body.body.getLinearVelocity().y, PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA));
     }
 
     if (controller.down) {
-      vel.velocity
-          .set(new Vector2(vel.velocity.x, MathUtils.lerp(vel.velocity.y, -PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA)));
+      b2body.body.setLinearVelocity(
+          b2body.body.getLinearVelocity().x,
+          MathUtils.lerp(b2body.body.getLinearVelocity().y, -PLAYER_VEL_MAX_SPEED, PLAYER_VEL_DELTA));
     }
 
-    if (!controller.up && !controller.down && state.get() == StateComponent.STATE_MOVING) {
-      vel.velocity
-          .set(new Vector2(vel.velocity.x, MathUtils.lerp(vel.velocity.x, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA)));
+    if (!controller.up && !controller.down) {
+      b2body.body.setLinearVelocity(
+          b2body.body.getLinearVelocity().x,
+          MathUtils.lerp(b2body.body.getLinearVelocity().x, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA));
     }
-
-    // if (controller.up &&
-    // (state.get() == StateComponent.STATE_IDDLE || state.get() ==
-    // StateComponent.STATE_MOVING)) {
-    // // b2body.body.applyForceToCenter(0, 3000,true);
-    // pbody.body.applyLinearImpulse(0, 75f,
-    // pbody.body.getWorldCenter().x, pbody.body.getWorldCenter().y, true);
-    // state.set(StateComponent.STATE_JUMPING);
-    // }
   }
 }

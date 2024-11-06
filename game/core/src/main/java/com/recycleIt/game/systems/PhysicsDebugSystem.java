@@ -1,43 +1,33 @@
 package com.recycleIt.game.systems;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
-import com.recycleIt.game.components.PolygonBodyComponent;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
+import com.recycleIt.game.components.B2dBodyComponent;
 
 public class PhysicsDebugSystem extends IteratingSystem {
-  private ShapeRenderer debugRenderer;
+  private Box2DDebugRenderer debugRenderer;
   private OrthographicCamera camera;
-  private ComponentMapper<PolygonBodyComponent> rm;
+  private World world;
 
-  public PhysicsDebugSystem(OrthographicCamera camera) {
-    super(Family.all(PolygonBodyComponent.class).get());
-    this.debugRenderer = new ShapeRenderer();
-    this.rm = ComponentMapper.getFor(PolygonBodyComponent.class);
+  public PhysicsDebugSystem(World world, OrthographicCamera camera) {
+    super(Family.all(B2dBodyComponent.class).get());
+    this.debugRenderer = new Box2DDebugRenderer();
     this.camera = camera;
+    this.world = world;
   }
 
   @Override
   public void update(float deltaTime) {
     super.update(deltaTime);
-
-    debugRenderer.setProjectionMatrix(camera.combined);
+    debugRenderer.render(world, camera.combined);
   }
 
   @Override
   protected void processEntity(Entity entity, float deltaTime) {
-    PolygonBodyComponent rb = rm.get(entity);
-
-    debugRenderer.begin(ShapeRenderer.ShapeType.Line);
-
-    debugRenderer.setColor(1, 0, 0, 1); // Red color for bodies
-    debugRenderer.polygon(rb.body.getTransformedVertices());
-
-    debugRenderer.end();
   }
 
 }

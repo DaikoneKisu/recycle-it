@@ -3,6 +3,7 @@ package com.recycleIt.game;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.recycleIt.game.core.ScreenController;
@@ -15,6 +16,7 @@ import com.recycleIt.game.core.ScreenController.Screen;
 public class RecycleIt extends Game {
 
   public ShapeRenderer shapeRenderer;
+  public SpriteBatch spriteBatch;
   public BitmapFont font;
   public FitViewport viewport;
   public ScreenController screenController;
@@ -25,6 +27,7 @@ public class RecycleIt extends Game {
   @Override
   public void create() {
     this.shapeRenderer = new ShapeRenderer();
+    this.spriteBatch = new SpriteBatch();
     this.font = new BitmapFont(); // default libGDX's font (arial)
     this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
     this.screenController = ScreenController.getInstace(this);

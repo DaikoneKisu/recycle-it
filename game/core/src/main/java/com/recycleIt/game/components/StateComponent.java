@@ -3,7 +3,7 @@ package com.recycleIt.game.components;
 import com.badlogic.ashley.core.Component;
 
 public class StateComponent implements Component {
-  public static final int STATE_IDDLE = 0;
+  public static final int STATE_IDLE = 0;
   public static final int STATE_MOVING = 1;
   public static final int STATE_HIT = 2;
 
