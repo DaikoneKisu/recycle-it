@@ -5,7 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.recycleIt.game.screens.GameScreen;
+import com.recycleIt.game.core.ScreenController;
+import com.recycleIt.game.core.ScreenController.Screen;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all
@@ -16,21 +17,25 @@ public class RecycleIt extends Game {
   public ShapeRenderer shapeRenderer;
   public BitmapFont font;
   public FitViewport viewport;
+  public ScreenController screenController;
 
   public final float WORLD_WIDTH = 800;
   public final float WORLD_HEIGHT = 600;
 
   @Override
   public void create() {
-    shapeRenderer = new ShapeRenderer();
+    this.shapeRenderer = new ShapeRenderer();
+    this.font = new BitmapFont(); // default libGDX's font (arial)
+    this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    this.screenController = ScreenController.getInstace(this);
 
-    font = new BitmapFont(); // default libGDX's font (arial)
-    viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    this.font.setUseIntegerPositions(false);
+    this.font.getData().setScale(viewport.getWorldHeight() / Gdx.graphics.getHeight());
 
-    font.setUseIntegerPositions(false);
-    font.getData().setScale(viewport.getWorldHeight() / Gdx.graphics.getHeight());
+    this.screenController.register(Screen.Game);
+    this.screenController.register(Screen.MainMenu);
 
-    this.setScreen(new GameScreen(this));
+    this.screenController.show(Screen.MainMenu);
   }
 
   @Override
@@ -40,7 +45,7 @@ public class RecycleIt extends Game {
 
   @Override
   public void dispose() {
-    shapeRenderer.dispose();
-    font.dispose();
+    this.shapeRenderer.dispose();
+    this.font.dispose();
   }
 }

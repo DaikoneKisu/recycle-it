@@ -1,27 +1,29 @@
 package com.recycleIt.game.screens;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.recycleIt.game.Ball;
 import com.recycleIt.game.Paddle;
 import com.recycleIt.game.RecycleIt;
+import com.recycleIt.game.controllers.KeyboardController;
+import com.recycleIt.game.core.AbstractScreen;
 
-public class GameScreen implements Screen {
-
-  private final RecycleIt game;
-
+public class GameScreen extends AbstractScreen {
   public ArrayList<Ball> balls = new ArrayList<>();
   public Random randomGenerator = new Random();
   public Paddle paddle;
+  public KeyboardController controller;
 
   public GameScreen(RecycleIt game) {
-    this.game = game;
+    super(game);
   }
 
   @Override
@@ -35,7 +37,19 @@ public class GameScreen implements Screen {
     var initialPaddleX = Gdx.graphics.getWidth() / 2;
     var initialPaddleY = 50;
 
-    this.paddle = new Paddle(100, 10, initialPaddleX, initialPaddleY);
+    Map<KeyboardController.Key, Integer> playerKeyboardMapping = new HashMap<KeyboardController.Key, Integer>();
+
+    playerKeyboardMapping.put(KeyboardController.Key.Left, Keys.LEFT);
+    playerKeyboardMapping.put(KeyboardController.Key.Right, Keys.RIGHT);
+    playerKeyboardMapping.put(KeyboardController.Key.Up, Keys.UP);
+    playerKeyboardMapping.put(KeyboardController.Key.Down, Keys.DOWN);
+
+    this.controller = new KeyboardController(playerKeyboardMapping);
+
+    Gdx.input.setInputProcessor(this.controller);
+
+    this.paddle = new Paddle(100, 10, initialPaddleX, initialPaddleY, this.controller);
+
   }
 
   @Override
@@ -53,7 +67,7 @@ public class GameScreen implements Screen {
   }
 
   private void draw() {
-    var shapeRenderer = this.game.shapeRenderer;
+    var shapeRenderer = this.GAME.shapeRenderer;
 
     ScreenUtils.clear(Color.BLACK);
 
@@ -70,7 +84,7 @@ public class GameScreen implements Screen {
 
   @Override
   public void resize(int width, int height) {
-    game.viewport.update(width, height, true);
+    this.GAME.viewport.update(width, height, true);
   }
 
   @Override
