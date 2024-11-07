@@ -4,48 +4,68 @@ package game;
 
 option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
 
-import "game/game-stage.proto";
-import "math/point.proto";
+import "game/game.proto";
+import "game/garbage.proto";
+import "game/player.proto";
+import "math/point-2d.proto";
 
 service GameController {
-	rpc StartGame(StartGameRequest) returns (stream StartGameResponse);
+	rpc HostGame(HostGameRequest) returns (stream HostGameResponse);
+	rpc StartGame(stream StartGameRequest) returns (stream StartGameResponse);
+
 	rpc JoinGame(JoinGameRequest) returns (stream JoinGameResponse);
-	rpc MoveMyTruckTo(MoveMyTruckToRequest) returns (MoveMyTruckToResponse);
-	rpc CollectGarbageWithMyTruck(CollectGarbageWithMyTruckRequest) returns (CollectGarbageWithMyTruckResponse);
-	rpc DepositGarbageFromMyTruck(DepositGarbageFromMyTruckRequest) returns (DepositGarbageFromMyTruckResponse);
+	rpc PlayGame(stream PlayGameRequest) returns (stream PlayGameResponse);
 }
 
-// metadata: auth-token
-message StartGameRequest {}
+message HostGameRequest {
+	string hostNickname = 1;
+	GameSettings gameSettings = 2;
+}
+
+message HostGameResponse {
+	repeated Player players = 1;
+	string gameID = 2;
+	GameSettings gameSettings = 3;
+}
+
+message StartGameRequest {
+	string gameID = 1;
+	GameStageUpdate gameStage = 2;
+}
 
 message StartGameResponse {
-	game.GameStage gameStage = 1;
-	int32 timeRemainingInSeconds = 2;
-	bool hasGameEnded = 3;
+	Game game = 1;
 }
 
-// metadata: auth-token
-message JoinGameRequest {}
+message JoinGameRequest {
+	string gameID = 1;
+	string guestNickname = 2;
+}
 
 message JoinGameResponse {
-	game.GameStage gameStage = 1;
-	int32 timeRemainingInSeconds = 2;
-	bool hasGameEnded = 3;
+	repeated Player players = 1;
+	string gameID = 2;
+	GameSettings gameSettings = 3;
 }
 
-// metadata: auth-token
-message MoveMyTruckToRequest {
-	math.Point newLocation = 1;
+message PlayGameRequest {
+	string gameID = 1;
+	string guestNickname = 2;
+	math.Point2D paddleLocation = 3;
 }
 
-message MoveMyTruckToResponse {}
+message PlayGameResponse {
+	Game game = 1;
+}
 
-// metadata: auth-token
-message CollectGarbageWithMyTruckRequest {}
+message GameStageUpdate {
+	repeated GarbageCollectorUpdate garbageCollectors = 1;
+	Garbage uncollectedGarbage = 2;
+	math.Point2D uncollectedGarbageLocation = 3;
+}
 
-message CollectGarbageWithMyTruckResponse {}
-
-// metadata: auth-token
-message DepositGarbageFromMyTruckRequest {}
-
-message DepositGarbageFromMyTruckResponse {}
+message GarbageCollectorUpdate {
+	string playerNickname = 1;
+	math.Point2D paddleLocation = 2;
+	repeated Garbage garbageCollected = 3;
+}

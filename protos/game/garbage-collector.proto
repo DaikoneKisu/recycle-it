@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+import "game/garbage.proto";
+import "game/player.proto";
+import "math/point-2d.proto";
+
+message GarbageCollector {
+	Player player = 1;
+	Garbage garbageToCollect = 2;
+	math.Point2D paddleLocation = 3;
+	repeated Garbage garbageCollected = 4;
+}

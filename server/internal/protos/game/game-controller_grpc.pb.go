@@ -19,22 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GameController_StartGame_FullMethodName                 = "/game.GameController/StartGame"
-	GameController_JoinGame_FullMethodName                  = "/game.GameController/JoinGame"
-	GameController_MoveMyTruckTo_FullMethodName             = "/game.GameController/MoveMyTruckTo"
-	GameController_CollectGarbageWithMyTruck_FullMethodName = "/game.GameController/CollectGarbageWithMyTruck"
-	GameController_DepositGarbageFromMyTruck_FullMethodName = "/game.GameController/DepositGarbageFromMyTruck"
+	GameController_HostGame_FullMethodName  = "/game.GameController/HostGame"
+	GameController_StartGame_FullMethodName = "/game.GameController/StartGame"
+	GameController_JoinGame_FullMethodName  = "/game.GameController/JoinGame"
+	GameController_PlayGame_FullMethodName  = "/game.GameController/PlayGame"
 )
 
 // GameControllerClient is the client API for GameController service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GameControllerClient interface {
-	StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StartGameResponse], error)
+	HostGame(ctx context.Context, in *HostGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HostGameResponse], error)
+	StartGame(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StartGameRequest, StartGameResponse], error)
 	JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[JoinGameResponse], error)
-	MoveMyTruckTo(ctx context.Context, in *MoveMyTruckToRequest, opts ...grpc.CallOption) (*MoveMyTruckToResponse, error)
-	CollectGarbageWithMyTruck(ctx context.Context, in *CollectGarbageWithMyTruckRequest, opts ...grpc.CallOption) (*CollectGarbageWithMyTruckResponse, error)
-	DepositGarbageFromMyTruck(ctx context.Context, in *DepositGarbageFromMyTruckRequest, opts ...grpc.CallOption) (*DepositGarbageFromMyTruckResponse, error)
+	PlayGame(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PlayGameRequest, PlayGameResponse], error)
 }
 
 type gameControllerClient struct {
@@ -45,13 +43,13 @@ func NewGameControllerClient(cc grpc.ClientConnInterface) GameControllerClient {
 	return &gameControllerClient{cc}
 }
 
-func (c *gameControllerClient) StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StartGameResponse], error) {
+func (c *gameControllerClient) HostGame(ctx context.Context, in *HostGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HostGameResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[0], GameController_StartGame_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[0], GameController_HostGame_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StartGameRequest, StartGameResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[HostGameRequest, HostGameResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -62,11 +60,24 @@ func (c *gameControllerClient) StartGame(ctx context.Context, in *StartGameReque
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameController_StartGameClient = grpc.ServerStreamingClient[StartGameResponse]
+type GameController_HostGameClient = grpc.ServerStreamingClient[HostGameResponse]
+
+func (c *gameControllerClient) StartGame(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StartGameRequest, StartGameResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[1], GameController_StartGame_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StartGameRequest, StartGameResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameController_StartGameClient = grpc.BidiStreamingClient[StartGameRequest, StartGameResponse]
 
 func (c *gameControllerClient) JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[JoinGameResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[1], GameController_JoinGame_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[2], GameController_JoinGame_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,45 +94,27 @@ func (c *gameControllerClient) JoinGame(ctx context.Context, in *JoinGameRequest
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GameController_JoinGameClient = grpc.ServerStreamingClient[JoinGameResponse]
 
-func (c *gameControllerClient) MoveMyTruckTo(ctx context.Context, in *MoveMyTruckToRequest, opts ...grpc.CallOption) (*MoveMyTruckToResponse, error) {
+func (c *gameControllerClient) PlayGame(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PlayGameRequest, PlayGameResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MoveMyTruckToResponse)
-	err := c.cc.Invoke(ctx, GameController_MoveMyTruckTo_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &GameController_ServiceDesc.Streams[3], GameController_PlayGame_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[PlayGameRequest, PlayGameResponse]{ClientStream: stream}
+	return x, nil
 }
 
-func (c *gameControllerClient) CollectGarbageWithMyTruck(ctx context.Context, in *CollectGarbageWithMyTruckRequest, opts ...grpc.CallOption) (*CollectGarbageWithMyTruckResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CollectGarbageWithMyTruckResponse)
-	err := c.cc.Invoke(ctx, GameController_CollectGarbageWithMyTruck_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameControllerClient) DepositGarbageFromMyTruck(ctx context.Context, in *DepositGarbageFromMyTruckRequest, opts ...grpc.CallOption) (*DepositGarbageFromMyTruckResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DepositGarbageFromMyTruckResponse)
-	err := c.cc.Invoke(ctx, GameController_DepositGarbageFromMyTruck_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameController_PlayGameClient = grpc.BidiStreamingClient[PlayGameRequest, PlayGameResponse]
 
 // GameControllerServer is the server API for GameController service.
 // All implementations must embed UnimplementedGameControllerServer
 // for forward compatibility.
 type GameControllerServer interface {
-	StartGame(*StartGameRequest, grpc.ServerStreamingServer[StartGameResponse]) error
+	HostGame(*HostGameRequest, grpc.ServerStreamingServer[HostGameResponse]) error
+	StartGame(grpc.BidiStreamingServer[StartGameRequest, StartGameResponse]) error
 	JoinGame(*JoinGameRequest, grpc.ServerStreamingServer[JoinGameResponse]) error
-	MoveMyTruckTo(context.Context, *MoveMyTruckToRequest) (*MoveMyTruckToResponse, error)
-	CollectGarbageWithMyTruck(context.Context, *CollectGarbageWithMyTruckRequest) (*CollectGarbageWithMyTruckResponse, error)
-	DepositGarbageFromMyTruck(context.Context, *DepositGarbageFromMyTruckRequest) (*DepositGarbageFromMyTruckResponse, error)
+	PlayGame(grpc.BidiStreamingServer[PlayGameRequest, PlayGameResponse]) error
 	mustEmbedUnimplementedGameControllerServer()
 }
 
@@ -132,20 +125,17 @@ type GameControllerServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGameControllerServer struct{}
 
-func (UnimplementedGameControllerServer) StartGame(*StartGameRequest, grpc.ServerStreamingServer[StartGameResponse]) error {
+func (UnimplementedGameControllerServer) HostGame(*HostGameRequest, grpc.ServerStreamingServer[HostGameResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method HostGame not implemented")
+}
+func (UnimplementedGameControllerServer) StartGame(grpc.BidiStreamingServer[StartGameRequest, StartGameResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method StartGame not implemented")
 }
 func (UnimplementedGameControllerServer) JoinGame(*JoinGameRequest, grpc.ServerStreamingServer[JoinGameResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method JoinGame not implemented")
 }
-func (UnimplementedGameControllerServer) MoveMyTruckTo(context.Context, *MoveMyTruckToRequest) (*MoveMyTruckToResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MoveMyTruckTo not implemented")
-}
-func (UnimplementedGameControllerServer) CollectGarbageWithMyTruck(context.Context, *CollectGarbageWithMyTruckRequest) (*CollectGarbageWithMyTruckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CollectGarbageWithMyTruck not implemented")
-}
-func (UnimplementedGameControllerServer) DepositGarbageFromMyTruck(context.Context, *DepositGarbageFromMyTruckRequest) (*DepositGarbageFromMyTruckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DepositGarbageFromMyTruck not implemented")
+func (UnimplementedGameControllerServer) PlayGame(grpc.BidiStreamingServer[PlayGameRequest, PlayGameResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method PlayGame not implemented")
 }
 func (UnimplementedGameControllerServer) mustEmbedUnimplementedGameControllerServer() {}
 func (UnimplementedGameControllerServer) testEmbeddedByValue()                        {}
@@ -168,16 +158,23 @@ func RegisterGameControllerServer(s grpc.ServiceRegistrar, srv GameControllerSer
 	s.RegisterService(&GameController_ServiceDesc, srv)
 }
 
-func _GameController_StartGame_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StartGameRequest)
+func _GameController_HostGame_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HostGameRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GameControllerServer).StartGame(m, &grpc.GenericServerStream[StartGameRequest, StartGameResponse]{ServerStream: stream})
+	return srv.(GameControllerServer).HostGame(m, &grpc.GenericServerStream[HostGameRequest, HostGameResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GameController_StartGameServer = grpc.ServerStreamingServer[StartGameResponse]
+type GameController_HostGameServer = grpc.ServerStreamingServer[HostGameResponse]
+
+func _GameController_StartGame_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GameControllerServer).StartGame(&grpc.GenericServerStream[StartGameRequest, StartGameResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameController_StartGameServer = grpc.BidiStreamingServer[StartGameRequest, StartGameResponse]
 
 func _GameController_JoinGame_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(JoinGameRequest)
@@ -190,59 +187,12 @@ func _GameController_JoinGame_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GameController_JoinGameServer = grpc.ServerStreamingServer[JoinGameResponse]
 
-func _GameController_MoveMyTruckTo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MoveMyTruckToRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameControllerServer).MoveMyTruckTo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameController_MoveMyTruckTo_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameControllerServer).MoveMyTruckTo(ctx, req.(*MoveMyTruckToRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+func _GameController_PlayGame_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GameControllerServer).PlayGame(&grpc.GenericServerStream[PlayGameRequest, PlayGameResponse]{ServerStream: stream})
 }
 
-func _GameController_CollectGarbageWithMyTruck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CollectGarbageWithMyTruckRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameControllerServer).CollectGarbageWithMyTruck(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameController_CollectGarbageWithMyTruck_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameControllerServer).CollectGarbageWithMyTruck(ctx, req.(*CollectGarbageWithMyTruckRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameController_DepositGarbageFromMyTruck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DepositGarbageFromMyTruckRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameControllerServer).DepositGarbageFromMyTruck(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameController_DepositGarbageFromMyTruck_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameControllerServer).DepositGarbageFromMyTruck(ctx, req.(*DepositGarbageFromMyTruckRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameController_PlayGameServer = grpc.BidiStreamingServer[PlayGameRequest, PlayGameResponse]
 
 // GameController_ServiceDesc is the grpc.ServiceDesc for GameController service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -250,30 +200,29 @@ func _GameController_DepositGarbageFromMyTruck_Handler(srv interface{}, ctx cont
 var GameController_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "game.GameController",
 	HandlerType: (*GameControllerServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "MoveMyTruckTo",
-			Handler:    _GameController_MoveMyTruckTo_Handler,
-		},
-		{
-			MethodName: "CollectGarbageWithMyTruck",
-			Handler:    _GameController_CollectGarbageWithMyTruck_Handler,
-		},
-		{
-			MethodName: "DepositGarbageFromMyTruck",
-			Handler:    _GameController_DepositGarbageFromMyTruck_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "HostGame",
+			Handler:       _GameController_HostGame_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "StartGame",
 			Handler:       _GameController_StartGame_Handler,
 			ServerStreams: true,
+			ClientStreams: true,
 		},
 		{
 			StreamName:    "JoinGame",
 			Handler:       _GameController_JoinGame_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "PlayGame",
+			Handler:       _GameController_PlayGame_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "game/game-controller.proto",

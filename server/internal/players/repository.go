@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"strings"
 
 	"github.com/DaikoneKisu/recycle-it/server/internal/db"
-	"github.com/DaikoneKisu/recycle-it/server/internal/passwords"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -22,35 +21,52 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r Repository) CreatePlayer(ctx context.Context, creationData PlayerCreation) (Player, error) {
 	return db.EnsureTx(ctx, r.db, func(ctx context.Context, tx *gorm.DB) (Player, error) {
-		_, playerAlreadyExists := r.GetPlayer(ctx, creationData.Nickname)
+		dbGame := db.Game{
+			ID: creationData.GameID,
+		}
+		rowsAffected := tx.Preload("Players").First(&dbGame).RowsAffected
+		if rowsAffected == 0 {
+			return Player{}, fmt.Errorf("there is no game with ID `%v`", creationData.GameID)
+		}
+
+		_, playerAlreadyExists := r.GetPlayer(ctx, creationData.GameID, creationData.Nickname)
 		if playerAlreadyExists {
-			return Player{}, fmt.Errorf("already exists a player with the nickname `%v`", creationData.Nickname)
+			return Player{}, fmt.Errorf("already exists a player with the nickname `%v` in the game with ID `%v`",
+				creationData.Nickname, creationData.GameID,
+			)
 		}
 		if isValid, errMsg := isNicknameFormatValid(creationData.Nickname); !isValid {
 			return Player{}, fmt.Errorf("invalid nickname: %v", errMsg)
 		}
-		if isValid, errMsg := isPasswordFormatValid(creationData.Password); !isValid {
-			return Player{}, fmt.Errorf("invalid password: %v", errMsg)
+		if isValid, errMsg := isRoleFormatValid(creationData.Role); !isValid {
+			return Player{}, fmt.Errorf("invalid role: %v", errMsg)
+		}
+		if isAvailable, errMsg := isRoleAvailable(creationData.Role, dbGame); !isAvailable {
+			return Player{}, fmt.Errorf("role not available: %v", errMsg)
 		}
 
 		dbPlayer := db.Player{
-			Nickname:        creationData.Nickname,
-			HashedPassword:  passwords.HashPassword(creationData.Password),
-			LobbyID:         nil,
-			LobbyMembership: nil,
+			GameID:           creationData.GameID,
+			Nickname:         creationData.Nickname,
+			Role:             creationData.Role,
+			GarbageToCollect: r.pickRandomAvailableGarbage(ctx, creationData.GameID),
 		}
-		result := tx.Create(&dbPlayer)
-
-		if result.Error != nil {
-			return Player{}, result.Error
+		err := tx.Create(&dbPlayer).Error
+		if err != nil {
+			return Player{}, err
 		}
-		return Player(dbPlayer), nil
+		return Player{
+			GameID:   dbPlayer.GameID,
+			Nickname: dbPlayer.Nickname,
+			Role:     dbPlayer.Role,
+		}, nil
 	})
 }
 
 type PlayerCreation struct {
+	GameID   string
 	Nickname string
-	Password string
+	Role     PlayerRole
 }
 
 func isNicknameFormatValid(nickname string) (bool, string) {
@@ -66,29 +82,70 @@ func isNicknameFormatValid(nickname string) (bool, string) {
 	return true, ""
 }
 
-func isPasswordFormatValid(password string) (bool, string) {
-	const WHITESPACE_CHARS = " \t\r\n"
-	if strings.ContainsAny(password, WHITESPACE_CHARS) {
-		return false, "the nickname cannot contain any form of whitespace"
+func isRoleFormatValid(role PlayerRole) (bool, string) {
+	if role == PLAYER_ROLE_HOST || role == PLAYER_ROLE_GUEST {
+		return true, ""
 	}
+	return false, fmt.Sprintf("the player role must be one of the following: %v, %v",
+		PLAYER_ROLE_HOST, PLAYER_ROLE_GUEST,
+	)
+}
 
-	const MIN_PASSWORD_LENGTH = 8
-	if len(password) < MIN_PASSWORD_LENGTH {
-		return false, fmt.Sprintf("the password must contain at least %v characters", MIN_PASSWORD_LENGTH)
+func isRoleAvailable(role db.PlayerRole, game db.Game) (bool, string) {
+	if role == db.PLAYER_ROLE_GUEST {
+		return true, ""
 	}
-
+	if len(game.Players) != 0 {
+		return false, fmt.Sprintf("there already is a host on the game with ID %v", game.ID)
+	}
 	return true, ""
 }
 
-func (r Repository) GetPlayer(ctx context.Context, nickname string) (Player, bool) {
+func (r Repository) pickRandomAvailableGarbage(ctx context.Context, gameID string) db.Garbage {
+	garbage, _ := db.EnsureTx(ctx, r.db, func(ctx context.Context, tx *gorm.DB) (db.Garbage, error) {
+		allGarbages := []db.Garbage{
+			db.GARBAGE_PLASTIC,
+			db.GARBAGE_GLASS,
+			db.GARBAGE_PAPER,
+			db.GARBAGE_ORGANIC,
+			db.GARBAGE_METAL,
+		}
+		var alreadyPickedGarbages []db.Garbage
+		tx.Where("game_id = ?", gameID).Select("garbage_to_collect").Find(&alreadyPickedGarbages)
+
+		var availableGarbages []db.Garbage
+		for _, g := range allGarbages {
+			if isGarbageAvailable(g, alreadyPickedGarbages) {
+				availableGarbages = append(availableGarbages, g)
+			}
+		}
+		return availableGarbages[rand.IntN(len(availableGarbages))], nil
+	})
+	return garbage
+}
+
+func isGarbageAvailable(garbage db.Garbage, alreadyPickedGarbages []db.Garbage) bool {
+	for _, g := range alreadyPickedGarbages {
+		if g == garbage {
+			return false
+		}
+	}
+	return true
+}
+
+func (r Repository) GetPlayer(ctx context.Context, gameID string, nickname string) (Player, bool) {
 	player, err := db.EnsureTx(ctx, r.db, func(ctx context.Context, tx *gorm.DB) (Player, error) {
 		var dbPlayer db.Player
-		result := tx.First(&dbPlayer, "nickname = ?", nickname)
+		rowsAffected := tx.First(&dbPlayer, "game_id = ? AND nickname = ?", gameID, nickname).RowsAffected
 
-		if result.RowsAffected == 0 {
+		if rowsAffected == 0 {
 			return Player{}, errors.New("")
 		}
-		return Player(dbPlayer), nil
+		return Player{
+			GameID:   dbPlayer.GameID,
+			Nickname: dbPlayer.Nickname,
+			Role:     dbPlayer.Role,
+		}, nil
 	})
 	if err != nil {
 		return Player{}, false
@@ -97,16 +154,14 @@ func (r Repository) GetPlayer(ctx context.Context, nickname string) (Player, boo
 }
 
 type Player struct {
-	Nickname        string
-	HashedPassword  string
-	LobbyID         *uuid.UUID
-	LobbyMembership *string
+	GameID   string
+	Nickname string
+	Role     PlayerRole
 }
 
-var LobbyMemberships = struct {
-	GUEST string
-	OWNER string
-}{
-	GUEST: "guest",
-	OWNER: "owner",
-}
+type PlayerRole = string
+
+const (
+	PLAYER_ROLE_HOST  PlayerRole = "host"
+	PLAYER_ROLE_GUEST PlayerRole = "guest"
+)
