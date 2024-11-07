@@ -26,6 +26,7 @@ import com.recycleIt.game.RecycleIt;
 import com.recycleIt.game.components.CollisionComponent;
 import com.recycleIt.game.components.PlayerComponent;
 import com.recycleIt.game.components.B2dBodyComponent;
+import com.recycleIt.game.components.BallComponent;
 import com.recycleIt.game.components.StateComponent;
 import com.recycleIt.game.components.TextureComponent;
 import com.recycleIt.game.components.TransformComponent;
@@ -88,23 +89,28 @@ public class GameScreen extends AbstractScreen {
     engine.addSystem(new AnimationSystem());
     engine.addSystem(renderingSystem);
     engine.addSystem(new PhysicsSystem(world));
-    engine.addSystem(new PhysicsDebugSystem(world, camera));
+    engine.addSystem(new PhysicsDebugSystem(world, renderingSystem.getCamera()));
     engine.addSystem(new CollisionSystem());
     engine.addSystem(new PlayerControlSystem(controller));
 
     // create some game objects
-    createPlayer();
-
     createLimits();
 
-    for (int i = 0; i < 1; i++) {
-      balls.add(new Ball(Gdx.graphics.getWidth() / 2,
-          Gdx.graphics.getHeight() / 2,
-          randomGenerator.nextInt(15) + 10, 3, 3));
-    }
+    createPlayer(RenderingSystem.FRUSTUM_WIDTH / 2, 2, true, false);
+    createPlayer(RenderingSystem.FRUSTUM_WIDTH / 2, RenderingSystem.FRUSTUM_HEIGHT - 2, false, false);
+    createPlayer(2, RenderingSystem.FRUSTUM_HEIGHT / 2, false, true);
+    createPlayer(RenderingSystem.FRUSTUM_WIDTH - 2, RenderingSystem.FRUSTUM_HEIGHT / 2, false, true);
 
-    var initialPaddleX = Gdx.graphics.getWidth() / 2;
-    var initialPaddleY = 50;
+    createBall();
+
+    // for (int i = 0; i < 1; i++) {
+    // balls.add(new Ball(Gdx.graphics.getWidth() / 2,
+    // Gdx.graphics.getHeight() / 2,
+    // randomGenerator.nextInt(15) + 10, 3, 3));
+    // }
+
+    // var initialPaddleX = Gdx.graphics.getWidth() / 2;
+    // var initialPaddleY = 50;
 
     // this.paddle = new Paddle(100, 10, initialPaddleX, initialPaddleY,
     // this.controller);
@@ -142,7 +148,7 @@ public class GameScreen extends AbstractScreen {
     shapeRenderer.end();
   }
 
-  private void createPlayer() {
+  private void createPlayer(float posx, float posy, boolean isMe, boolean isVertical) {
     // Create the Entity and all the components that will go in the entity
     Entity entity = engine.createEntity();
     B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
@@ -154,14 +160,20 @@ public class GameScreen extends AbstractScreen {
     StateComponent stateCom = engine.createComponent(StateComponent.class);
 
     // create the data for the components and add them to the components
-    b2dbody.body = bodyFactory.makeBoxPolyBody(2, 2, 3, 0.2f,
-        BodyMaterial.Stone, BodyType.DynamicBody, true);
+    if (!isVertical) {
+      b2dbody.body = bodyFactory.makeBoxPolyBody(posx, posy, 3, 0.2f,
+          BodyMaterial.Stone, BodyType.DynamicBody, true);
+    } else {
+      b2dbody.body = bodyFactory.makeBoxPolyBody(posx, posy, 0.2f, 3,
+          BodyMaterial.Stone, BodyType.DynamicBody, true);
+    }
     // set object position (x,y,z) z used to define draw order 0 first drawn
-    // position.position.set(10, 10, 0);
+    position.position.set(posx, posy, 0);
     // texture.region = atlas.findRegion("player");
-    type.type = TypeComponent.HOST;
+    type.type = TypeComponent.Type.Host;
     stateCom.set(StateComponent.STATE_IDLE);
     b2dbody.body.setUserData(entity);
+    player.isMe = isMe;
 
     // add the components to the entity
     entity.add(b2dbody);
@@ -183,7 +195,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent texture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent type = engine.createComponent(TypeComponent.class);
-    type.type = TypeComponent.SCENERY;
+    type.type = TypeComponent.Type.Scenery;
     b2dbody.body.setUserData(entity);
 
     entity.add(b2dbody);
@@ -201,7 +213,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent texture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent type = engine.createComponent(TypeComponent.class);
-    type.type = TypeComponent.SCENERY;
+    type.type = TypeComponent.Type.Scenery;
 
     b2dbody.body.setUserData(entity);
 
@@ -220,7 +232,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent lltexture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent lltype = engine.createComponent(TypeComponent.class);
-    lltype.type = TypeComponent.SCENERY;
+    lltype.type = TypeComponent.Type.Scenery;
 
     llb2dbody.body.setUserData(lowerLimit);
 
@@ -238,7 +250,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent ultexture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent ultype = engine.createComponent(TypeComponent.class);
-    ultype.type = TypeComponent.SCENERY;
+    ultype.type = TypeComponent.Type.Scenery;
 
     ulb2dbody.body.setUserData(upperLimit);
 
@@ -255,7 +267,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent lmltexture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent lmltype = engine.createComponent(TypeComponent.class);
-    lmltype.type = TypeComponent.SCENERY;
+    lmltype.type = TypeComponent.Type.Scenery;
 
     lmlb2dbody.body.setUserData(lefmostLimit);
 
@@ -273,7 +285,7 @@ public class GameScreen extends AbstractScreen {
     TextureComponent rmltexture = engine.createComponent(TextureComponent.class);
     // texture.region = atlas.findRegion("player");
     TypeComponent rmltype = engine.createComponent(TypeComponent.class);
-    rmltype.type = TypeComponent.SCENERY;
+    rmltype.type = TypeComponent.Type.Scenery;
 
     rmlb2dbody.body.setUserData(rightmostLimit);
 
@@ -282,6 +294,44 @@ public class GameScreen extends AbstractScreen {
     rightmostLimit.add(rmltype);
 
     engine.addEntity(rightmostLimit);
+  }
+
+  private void createBall() {
+    Entity ball = engine.createEntity();
+    B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
+    TextureComponent texture = engine.createComponent(TextureComponent.class);
+    TransformComponent position = engine.createComponent(TransformComponent.class);
+    CollisionComponent colComp = engine.createComponent(CollisionComponent.class);
+    TypeComponent type = engine.createComponent(TypeComponent.class);
+    StateComponent stateCom = engine.createComponent(StateComponent.class);
+    BallComponent ballComp = engine.createComponent(BallComponent.class);
+
+    // create the data for the components and add them to the components
+    b2dbody.body = bodyFactory.makeCirclePolyBody(RenderingSystem.FRUSTUM_WIDTH / 2, RenderingSystem.FRUSTUM_HEIGHT / 2,
+        0.5f,
+        BodyMaterial.Rubber, BodyType.DynamicBody, true);
+    // set object position (x,y,z) z used to define draw order 0 first drawn
+    position.position.set(RenderingSystem.FRUSTUM_WIDTH / 2, RenderingSystem.FRUSTUM_HEIGHT / 2, 0);
+    b2dbody.body.applyForceToCenter(
+        new Vector2(randomGenerator.nextFloat(0, 100) >= 50 ? 100 : -100,
+            randomGenerator.nextFloat(0, 100) >= 50 ? 100 : -100),
+        true);
+    // texture.region = atlas.findRegion("player");
+    type.type = TypeComponent.Type.Ball;
+    stateCom.set(StateComponent.STATE_IDLE);
+    b2dbody.body.setUserData(ball);
+
+    // add the components to the entity
+    ball.add(b2dbody);
+    ball.add(texture);
+    ball.add(colComp);
+    ball.add(type);
+    ball.add(stateCom);
+    ball.add(ballComp);
+    ball.add(position);
+
+    // add the entity to the engine
+    engine.addEntity(ball);
   }
 
   @Override

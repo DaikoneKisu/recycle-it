@@ -9,8 +9,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.recycleIt.game.RecycleIt;
+import com.recycleIt.game.controllers.ScreenController.Screen;
 import com.recycleIt.game.core.AbstractScreen;
-import com.recycleIt.game.core.ScreenController.Screen;
 
 public class MainMenuScreen extends AbstractScreen {
   private Texture texture;

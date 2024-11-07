@@ -1,8 +1,9 @@
-package com.recycleIt.game.core;
+package com.recycleIt.game.controllers;
 
 import com.badlogic.gdx.utils.Array;
 
 import com.recycleIt.game.RecycleIt;
+import com.recycleIt.game.core.AbstractScreen;
 import com.recycleIt.game.screens.GameScreen;
 import com.recycleIt.game.screens.MainMenuScreen;
 

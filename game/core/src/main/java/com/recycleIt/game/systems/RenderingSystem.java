@@ -73,6 +73,8 @@ public class RenderingSystem extends SortedIteratingSystem {
     // set up the camera to match our screen size
     cam = new OrthographicCamera(FRUSTUM_WIDTH, FRUSTUM_HEIGHT);
     cam.position.set(FRUSTUM_WIDTH / 2f, FRUSTUM_HEIGHT / 2f, 0);
+
+    this.comparator = new ZComparator();
   }
 
   @Override

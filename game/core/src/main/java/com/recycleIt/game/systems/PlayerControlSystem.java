@@ -17,7 +17,7 @@ public class PlayerControlSystem extends IteratingSystem {
   ComponentMapper<StateComponent> sm;
   KeyboardController controller;
 
-  private final float PLAYER_VEL_MAX_SPEED = 5f;
+  private final float PLAYER_VEL_MAX_SPEED = 7f;
   private final float PLAYER_VEL_MIN_SPEED = 0f;
   private final float PLAYER_VEL_DELTA = 0.5f;
 
@@ -33,6 +33,11 @@ public class PlayerControlSystem extends IteratingSystem {
   protected void processEntity(Entity entity, float deltaTime) {
     B2dBodyComponent b2body = bodm.get(entity);
     StateComponent state = sm.get(entity);
+    PlayerComponent player = pm.get(entity);
+
+    if (!player.isMe) {
+      return;
+    }
 
     if (b2body.body.getLinearVelocity().len() > 0) {
       state.set(StateComponent.STATE_MOVING);
@@ -41,8 +46,6 @@ public class PlayerControlSystem extends IteratingSystem {
     if (b2body.body.getLinearVelocity().len() == 0) {
       state.set(StateComponent.STATE_IDLE);
     }
-
-    System.out.println(b2body.body.getLinearVelocity());
 
     if (controller.left) {
       b2body.body.setLinearVelocity(
@@ -76,7 +79,7 @@ public class PlayerControlSystem extends IteratingSystem {
     if (!controller.up && !controller.down) {
       b2body.body.setLinearVelocity(
           b2body.body.getLinearVelocity().x,
-          MathUtils.lerp(b2body.body.getLinearVelocity().x, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA));
+          MathUtils.lerp(b2body.body.getLinearVelocity().y, PLAYER_VEL_MIN_SPEED, PLAYER_VEL_DELTA));
     }
   }
 }

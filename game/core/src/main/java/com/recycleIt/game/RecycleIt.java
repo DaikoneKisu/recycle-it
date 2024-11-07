@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.recycleIt.game.core.ScreenController;
-import com.recycleIt.game.core.ScreenController.Screen;
+import com.recycleIt.game.controllers.ScreenController;
+import com.recycleIt.game.controllers.ScreenController.Screen;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all
