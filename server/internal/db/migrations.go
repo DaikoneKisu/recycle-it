@@ -5,6 +5,7 @@ import (
 )
 
 func RunMigrations(db *gorm.DB) {
+	db.AutoMigrate(&Game{})
 	db.AutoMigrate(&Player{})
-	db.AutoMigrate(&Lobby{})
+	db.AutoMigrate(&GarbageCollected{})
 }

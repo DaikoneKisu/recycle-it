@@ -4,18 +4,11 @@ package game;
 
 option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
 
-message Garbage {
-	GarbageType type = 1;
-	int32 weightInGrams = 2;
-	int32 recyclingReward = 3;
-}
-
-enum GarbageType {
-	GARBAGE_TYPE_UNKNOWN = 0;
-	GARBAGE_TYPE_PLASTIC = 1;
-	GARBAGE_TYPE_GLASS = 2;
-	GARBAGE_TYPE_PAPER = 3;
-	GARBAGE_TYPE_ORGANIC = 4;
-	GARBAGE_TYPE_METAL = 5;
-	GARBAGE_TYPE_SPECIAL = 6;
+enum Garbage {
+	GARBAGE_UNKNOWN = 0;
+	GARBAGE_PLASTIC = 1;
+	GARBAGE_GLASS = 2;
+	GARBAGE_PAPER = 3;
+	GARBAGE_ORGANIC = 4;
+	GARBAGE_METAL = 5;
 }

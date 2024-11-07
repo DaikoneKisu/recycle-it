@@ -5,11 +5,10 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/DaikoneKisu/recycle-it/server/internal/auth"
 	"github.com/DaikoneKisu/recycle-it/server/internal/db"
-	pbAuth "github.com/DaikoneKisu/recycle-it/server/internal/protos/auth"
-	"github.com/DaikoneKisu/recycle-it/server/internal/protos/game"
-	"github.com/DaikoneKisu/recycle-it/server/internal/protos/lobby"
+	"github.com/DaikoneKisu/recycle-it/server/internal/game"
+	"github.com/DaikoneKisu/recycle-it/server/internal/players"
+	pbGame "github.com/DaikoneKisu/recycle-it/server/internal/protos/game"
 	"google.golang.org/grpc"
 )
 
@@ -27,9 +26,13 @@ func Serve() error {
 	db.RunMigrations(recycleItDB)
 
 	grpcServer := grpc.NewServer()
-	pbAuth.RegisterAuthControllerServer(grpcServer, auth.NewController(recycleItDB))
-	lobby.RegisterLobbyControllerServer(grpcServer, lobby.UnimplementedLobbyControllerServer{})
-	game.RegisterGameControllerServer(grpcServer, game.UnimplementedGameControllerServer{})
+	gameController := game.NewController(
+		game.NewGameManager(
+			recycleItDB,
+			game.NewRepository(recycleItDB, players.NewRepository(recycleItDB)),
+		),
+	)
+	pbGame.RegisterGameControllerServer(grpcServer, gameController)
 
 	slog.Info(fmt.Sprintf("listening on %v", SERVER_ADDRESS))
 	grpcServer.Serve(networkListener)

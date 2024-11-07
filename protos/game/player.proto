@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/game";
+
+message Player {
+	string nickname = 1;
+	PlayerRole role = 2;
+}
+
+enum PlayerRole {
+	PLAYER_ROLE_UNKNOWN = 0;
+	PLAYER_ROLE_HOST = 1;
+	PLAYER_ROLE_GUEST = 2;
+}

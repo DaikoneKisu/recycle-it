@@ -4,7 +4,7 @@ package math;
 
 option go_package = "github.com/DaikoneKisu/recycle-it/server/internal/protos/math";
 
-message Point {
+message Point2D {
 	int32 x = 1;
 	int32 y = 2;
 }
