@@ -81,8 +81,8 @@ func (gm GameManager) MovePaddle(ctx context.Context, gameID string, playerNickn
 		err := tx.Model(
 			&db.Player{},
 		).Select(
-			"paddle_location_x",
-			"paddle_location_y",
+			"PaddleLocationX",
+			"PaddleLocationY",
 		).Where(
 			"game_id = ? AND nickname = ?", gameID, playerNickname,
 		).Updates(
@@ -95,6 +95,79 @@ func (gm GameManager) MovePaddle(ctx context.Context, gameID string, playerNickn
 		game, _ = gm.gameRepository.GetGameByID(ctx, gameID)
 		return game, nil
 	})
+}
+
+func (gm GameManager) UpdateStage(ctx context.Context, gameID string, updateData GameStageUpdate) (Game, error) {
+	return db.EnsureTx(ctx, gm.db, func(ctx context.Context, tx *gorm.DB) (Game, error) {
+		game, gameExists := gm.gameRepository.GetGameByID(ctx, gameID)
+		if !gameExists {
+			return Game{}, fmt.Errorf("there is no game with ID `%v`", gameID)
+		}
+		if !game.HasGameStarted {
+			return Game{}, errors.New("cannot move any paddle, the game has not started yet")
+		}
+
+		err := tx.Model(
+			&db.Game{ID: gameID},
+		).Select(
+			"UncollectedGarbage",
+			"UncollectedGarbageLocationX",
+			"UncollectedGarbageLocationY",
+		).Updates(&db.Game{
+			UncollectedGarbage:          string(updateData.UncollectedGarbage),
+			UncollectedGarbageLocationX: updateData.UncollectedGarbageLocation.X,
+			UncollectedGarbageLocationY: updateData.UncollectedGarbageLocation.Y,
+		}).Error
+		if err != nil {
+			return Game{}, fmt.Errorf("could not update the game stage: %w", err)
+		}
+
+		for _, gc := range updateData.GarbageCollectors {
+			err := tx.Model(
+				&db.Player{Nickname: gc.PlayerNickname},
+			).Select(
+				"PaddleLocationX",
+				"PaddleLocationY",
+			).Updates(&db.Player{
+				PaddleLocationX: gc.PaddleLocation.X,
+				PaddleLocationY: gc.PaddleLocation.Y,
+			}).Error
+			if err != nil {
+				return Game{}, fmt.Errorf("could not update the player data of `%v`: %w", gc.PlayerNickname, err)
+			}
+
+			garbageCollected := make([]db.GarbageCollected, len(gc.GarbageCollected))
+			for i, g := range gc.GarbageCollected {
+				garbageCollected[i] = db.GarbageCollected{Garbage: g}
+			}
+
+			err = tx.Session(&gorm.Session{FullSaveAssociations: true}).Model(
+				&db.Player{GameID: gameID, Nickname: gc.PlayerNickname},
+			).Association(
+				"GarbageCollected",
+			).Replace(
+				garbageCollected,
+			)
+			if err != nil {
+				return Game{}, fmt.Errorf("could not update the garbage collected by `%v`: %w", gc.PlayerNickname, err)
+			}
+		}
+
+		game, _ = gm.gameRepository.GetGameByID(ctx, gameID)
+		return game, nil
+	})
+}
+
+type GameStageUpdate struct {
+	GarbageCollectors          []GarbageCollectorUpdate
+	UncollectedGarbage         Garbage
+	UncollectedGarbageLocation Point2D
+}
+
+type GarbageCollectorUpdate struct {
+	PlayerNickname   string
+	PaddleLocation   Point2D
+	GarbageCollected []Garbage
 }
 
 func (gm GameManager) GetLobby(ctx context.Context, gameID string) (Lobby, error) {

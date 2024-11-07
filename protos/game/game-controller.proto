@@ -29,7 +29,8 @@ message HostGameResponse {
 }
 
 message StartGameRequest {
-	GameStageUpdate gameStage = 1;
+	string gameID = 1;
+	GameStageUpdate gameStage = 2;
 }
 
 message StartGameResponse {

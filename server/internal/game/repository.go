@@ -174,7 +174,7 @@ type PlayerWithoutGameID struct {
 	Role     players.PlayerRole
 }
 
-type Garbage string
+type Garbage = string
 
 const (
 	GARBAGE_PLASTIC Garbage = "plastic"
